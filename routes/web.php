@@ -1,44 +1,57 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\AuthPageController;
 use App\Http\Controllers\UserMenuController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\StaffReportController;
+use App\Http\Controllers\CheckinController;
 
-// หน้าเช็คว่า routes โหลดแล้ว
-Route::get('/', fn() => 'OK: routes loaded');
+use App\Http\Middleware\RequireStaff;
+use App\Http\Middleware\RequirePerson;
 
-// Login + Callback
+/*
+|--------------------------------------------------------------------------
+| Routes
+|--------------------------------------------------------------------------
+*/
+
+// Root → login
+Route::get('/', fn () => redirect()->route('login'));
+
+// Login + Callback + Logout
 Route::get('/login', [AuthPageController::class, 'showLogin'])->name('login');
 Route::get('/auth',  [AuthPageController::class, 'redirectToSso'])->name('auth.redirect');
-
-// เมนูนิสิต/บุคลากร (ยังไม่ใส่ middleware ตอนดีบัก)
-Route::get('/user/menu', [UserMenuController::class, 'index'])->name('user.menu');
-
-// เมนูเจ้าหน้าที่ (ล็อกด้วย staff)
-Route::get('/staff/console', [StaffController::class, 'console'])
-    ->middleware(\App\Http\Middleware\RequireStaff::class)
-    ->name('staff.console');
-
-// ออกจากระบบ
 Route::post('/logout', [AuthPageController::class, 'logout'])->name('logout');
 
-// เมนูนิสิต
+// เมนูนิสิต/บุคลากร
+Route::get('/user/menu', [UserMenuController::class, 'index'])
+    ->middleware(RequirePerson::class)
+    ->name('user.menu');
+
+// เมนูเจ้าหน้าที่
+Route::get('/staff/console', [StaffController::class, 'console'])
+    ->middleware(RequireStaff::class)
+    ->name('staff.console');
+
+// choose (เฉพาะนิสิต/บุคลากร)
 Route::get('/choose', [PageController::class, 'choose'])
-    ->middleware('person')
+    ->middleware(RequirePerson::class)
     ->name('choose');
 
-// ปุ่ม Check out สระ (ชั่วคราวให้ขึ้นหน้าเปล่าๆก่อน)
-Route::get('/pool/checkout', function () {
-    return 'pool checkout page';
-})->name('pool.checkout');
+// checkin (เฉพาะนิสิต/บุคลากร)
+Route::post('/checkin', [CheckinController::class, 'submit'])
+    ->middleware(RequirePerson::class)
+    ->name('checkin.submit');
 
-// ปุ่มอื่นในเมนูที่อ้างชื่อไว้
+// ปลายทางอื่นให้ route() ไม่พัง (ชั่วคราว)
+Route::get('/pool/checkout', fn() => 'pool checkout page')->name('pool.checkout');
 Route::get('/staff/equipment', fn() => 'staff equipment page')->name('staff.equipment');
 Route::get('/staff/badminton-booking', fn() => 'staff badminton page')->name('staff.badminton');
 
+// Report (เฉพาะ staff)
 Route::get('/staff/report', [StaffReportController::class, 'index'])
-    ->middleware('staff')               // ให้ผ่านได้เฉพาะเจ้าหน้าที่
+    ->middleware(RequireStaff::class)
     ->name('staff.report');

@@ -97,6 +97,12 @@
             window.addEventListener('resize', () => moveIndicator(document.querySelector(
                 '[role="tab"][aria-selected="true"]')));
         })();
+        document.getElementById('btn-continue').addEventListener('click', function() {
+            const role = document.querySelector('[role="tab"][aria-selected="true"]')?.dataset.role || 'person';
+            const url = new URL("{{ route('auth.redirect') }}", window.location.origin);
+            url.searchParams.set('role', role);
+            window.location.href = url.toString();
+        });
     </script>
 </body>
 

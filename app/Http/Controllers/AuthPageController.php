@@ -17,11 +17,12 @@ class AuthPageController extends Controller
         $role = strtolower((string) $request->query('role', 'person'));
         $role = $role === 'staff' ? 'staff' : 'person';
 
-        // mock user + ตั้ง session ให้ชัดเจน
+        // mock user + ตั้ง session ให้ชัดเจน (ไม่แตะ DB)
         $user = [
-            'name'  => $role === 'staff' ? 'เจ้าหน้าที่ทดสอบ' : 'นิสิตทดสอบ',
-            'email' => $role === 'staff' ? 'staff@up.ac.th' : 'student@up.ac.th',
-            'role'  => $role,
+            'name'    => $role === 'staff' ? 'เจ้าหน้าที่ทดสอบ' : 'นิสิตทดสอบ',
+            'email'   => $role === 'staff' ? 'staff@up.ac.th' : 'student@up.ac.th',
+            'role'    => $role,
+            'faculty' => $role === 'person' ? 'คณะวิทยาการคอมพิวเตอร์' : null,
         ];
         $request->session()->put('user', $user);
 
