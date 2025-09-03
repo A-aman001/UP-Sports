@@ -9,12 +9,10 @@ class RequirePerson
 {
     public function handle(Request $request, Closure $next)
     {
-        $role = data_get($request->session()->get('user', []), 'role');
-
+        $role = $request->session()->get('user.role');
         if ($role !== 'person') {
             return redirect()->route('login')->with('error', 'สำหรับนิสิต/บุคลากรเท่านั้น');
         }
-
         return $next($request);
     }
 }
