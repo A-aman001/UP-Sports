@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthPageController;
 use App\Http\Controllers\UserMenuController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\StaffReportController;
 
 // หน้าเช็คว่า routes โหลดแล้ว
 Route::get('/', fn() => 'OK: routes loaded');
@@ -37,3 +38,7 @@ Route::get('/pool/checkout', function () {
 // ปุ่มอื่นในเมนูที่อ้างชื่อไว้
 Route::get('/staff/equipment', fn() => 'staff equipment page')->name('staff.equipment');
 Route::get('/staff/badminton-booking', fn() => 'staff badminton page')->name('staff.badminton');
+
+Route::get('/staff/report', [StaffReportController::class, 'index'])
+    ->middleware('staff')               // ให้ผ่านได้เฉพาะเจ้าหน้าที่
+    ->name('staff.report');
