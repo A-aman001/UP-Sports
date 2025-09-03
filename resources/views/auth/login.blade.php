@@ -4,52 +4,37 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <link rel="icon" href="{{ asset('img/Logo_of_University_of_Phayao.svg.png') }}" type="image/png">
     <title>กองกิจการนิสิต เข้าสู่ระบบ</title>
     <meta name="color-scheme" content="light dark">
-
     <link rel="stylesheet" href="{{ asset('assets/css/login.css') }}">
-    <script src="{{ asset('js/login.js') }}" defer></script>
 </head>
 
 <body>
-    <!-- แถบบนพร้อมโลโก้ย่อ -->
     <header class="topbar" aria-label="University Bar">
         <div class="brand-small" aria-label="DQSD logo small">
-            <span>
-                <img src="{{ asset('img/logoDSASMART.png') }}" alt="DSA" height="100">
-            </span>
+            <span><img src="{{ asset('img/logoDSASMART.png') }}" alt="DSA" height="100"></span>
         </div>
     </header>
 
-    <!-- เนื้อหาหลัก -->
     <main class="wrap">
         <section class="card" role="region" aria-labelledby="login-title">
-
-            <!-- ปุ่มเลือกบทบาท -->
+            <!-- แท็บเลือกบทบาท -->
             <div class="segmented" role="tablist" aria-label="ประเภทผู้ใช้">
                 <button id="tab-staff" role="tab" aria-selected="true" data-role="staff">เจ้าหน้าที่</button>
                 <button id="tab-person" role="tab" aria-selected="false"
                     data-role="person">นิสิต/บุคคลทั่วไป</button>
-                <!-- เส้นล็อก (ตัวชี้ตำแหน่งปุ่มที่เลือก) -->
                 <span class="segmented-indicator" aria-hidden="true"></span>
             </div>
 
-            {{-- <!-- ป้ายบอกสถานะล็อกบทบาท -->
-            <div class="role-lock" aria-live="polite">
-                <span class="lock-dot" aria-hidden="true"></span>
-                <span id="role-label">ล็อกบทบาท: เจ้าหน้าที่</span>
-            </div> --}}
-            <!-- โลโก้/ชื่อหน่วยงาน -->
+            <!-- โลโก้ -->
             <div class="logo-block" aria-live="polite">
                 <img src="{{ asset('img/dsa.png') }}" alt="ตรากองพัฒนาคุณภาพนิสิตและนิสิตพิการ" height="250">
             </div>
 
-
             <div class="divider" role="separator" aria-hidden="true"></div>
 
-            <!-- ปุ่มเข้าสู่ระบบ (ใช้บทบาทที่ล็อกไว้) -->
+            <!-- ปุ่มเข้าสู่ระบบด้วยบทบาทที่เลือก -->
             <div class="cta">
                 <button type="button" id="btn-continue">เข้าสู่ระบบด้วย UP ACCOUNT</button>
             </div>
@@ -63,6 +48,56 @@
             </div>
         </section>
     </main>
+
+    {{-- JS เฉพาะหน้านี้ --}}
+    <script>
+        (function() {
+            let selectedRole = 'staff';
+            const tabStaff = document.getElementById('tab-staff');
+            const tabPerson = document.getElementById('tab-person');
+            const indicator = document.querySelector('.segmented-indicator');
+            const btn = document.getElementById('btn-continue');
+
+            function moveIndicator(activeBtn) {
+                if (!indicator || !activeBtn) return;
+                const p = activeBtn.parentElement.getBoundingClientRect();
+                const r = activeBtn.getBoundingClientRect();
+                indicator.style.width = r.width + 'px';
+                indicator.style.transform = `translateX(${r.left - p.left}px)`;
+            }
+
+            function activate(role) {
+                selectedRole = role;
+                const active = role === 'staff' ? tabStaff : tabPerson;
+                const inactive = role === 'staff' ? tabPerson : tabStaff;
+
+                active.setAttribute('aria-selected', 'true');
+                active.tabIndex = 0;
+                inactive.setAttribute('aria-selected', 'false');
+                inactive.tabIndex = -1;
+
+                moveIndicator(active);
+            }
+
+            tabStaff?.addEventListener('click', () => activate('staff'));
+            tabPerson?.addEventListener('click', () => activate('person'));
+
+            btn?.addEventListener('click', () => {
+                const base = "{{ route('auth.redirect') }}";
+                const url = new URL(base, window.location.origin);
+                url.searchParams.set('role', selectedRole);
+                window.location.href = url.toString();
+            });
+
+            window.addEventListener('load', () => {
+                activate('staff');
+                setTimeout(() => moveIndicator(document.querySelector('[role="tab"][aria-selected="true"]')),
+                    50);
+            });
+            window.addEventListener('resize', () => moveIndicator(document.querySelector(
+                '[role="tab"][aria-selected="true"]')));
+        })();
+    </script>
 </body>
 
 </html>

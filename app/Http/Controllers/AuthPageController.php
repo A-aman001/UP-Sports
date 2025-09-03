@@ -13,23 +13,28 @@ class AuthPageController extends Controller
 
     public function redirectToSso(Request $request)
     {
-        // 👉 จำลอง user ที่ login ผ่านเมลมหาลัย
-        // ภายหลังเชื่อม SSO จริง ก็มาตั้งค่าตรงนี้ได้เลย
-        $user = [
-            'name'  => 'Aman Akikae',
-            'email' => '67023086@up.ac.th',
-            'role'  => 'staff', // ลองกำหนดเป็น staff
-        ];
+        // รับ role จาก query: staff | person (default person)
+        $role = strtolower((string) $request->query('role', 'person'));
+        $role = $role === 'staff' ? 'staff' : 'person';
 
-        // เก็บ user ลง session
+        // mock user + ตั้ง session ให้ชัดเจน
+        $user = [
+            'name'  => $role === 'staff' ? 'เจ้าหน้าที่ทดสอบ' : 'นิสิตทดสอบ',
+            'email' => $role === 'staff' ? 'staff@up.ac.th' : 'student@up.ac.th',
+            'role'  => $role,
+        ];
         $request->session()->put('user', $user);
 
-        // 👉 ถ้าเป็น staff → ไปหน้า staff.console
-        if ($user['role'] === 'staff') {
-            return redirect()->route('staff.console');
-        }
+        // ส่งต่อไปเมนูตามบทบาท
+        return $role === 'staff'
+            ? redirect()->route('staff.console')
+            : redirect()->route('user.menu');
+    }
 
-        // 👉 ถ้าไม่ใช่ staff → ไปหน้าอื่น (เช่น choose)
-        return redirect()->route('choose');
+    public function logout(Request $request)
+    {
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login')->with('status', 'ออกจากระบบแล้ว');
     }
 }

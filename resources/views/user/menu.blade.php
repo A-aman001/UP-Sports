@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>UP-FMS · เมนูหลักสำหรับนิสิตและบุคลากร</title>
+    <meta name="color-scheme" content="light dark">
+    <link rel="icon" href="{{ asset('img/Logo_of_University_of_Phayao.svg.png') }}" type="image/png">
+
+    {{-- CSS --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/main-menu.css') }}">
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img src="{{ asset('img/logoDSASMART.png') }}" alt="DSA" class="brand-logo">
+        </div>
+
+        <div class="righttools">
+            <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 21a8 8 0 0 0-16 0" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                {{ $displayName }}
+            </span>
+
+            <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                @csrf
+                <button type="submit" class="logout" title="ออกจากระบบ" aria-label="ออกจากระบบ">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <path d="M16 17l5-5-5-5" />
+                        <path d="M21 12H9" />
+                    </svg>
+                    ออกจากระบบ
+                </button>
+            </form>
+
+        </div>
+    </header>
+
+    <main>
+        <div class="section-title">เมนูหลักสำหรับนิสิตและบุคลากร</div>
+
+        <section class="grid" aria-label="เมนูด่วน">
+            {{-- Check in --}}
+            <a class="tile" href="{{ route('choose') }}">
+                <div class="tile-inner">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M3 3h8v8H3V3zm2 2v4h4V5H5zm6 0h2v2h-2V5zm4 0h6v6h-6V5zm2 2v2h2V7h-2zm-8 6h2v2H9v-2zm-6 0h4v4H3v-4zm2 2v0m8 0h2v2h-2v-2zm4 0h2v6h-6v-2h4v-4zm-12 4h2v2H5v-2z"
+                            fill="currentColor" />
+                    </svg>
+                    <b>Check in</b>
+                    <small>เช็คอินเลือกเข้าสนาม</small>
+                </div>
+            </a>
+
+            {{-- Check out (เฉพาะผู้ใช้สระ) --}}
+            <a class="tile" href="{{ route('pool.checkout') }}">
+                <div class="tile-inner">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm12 0h6v2h-6v6h-2v-8h2z"
+                            fill="currentColor" />
+                    </svg>
+                    <b>Check out</b>
+                    <small>เฉพาะผู้ใช้สระ</small>
+                </div>
+            </a>
+
+            {{-- ยืม-คืนอุปกรณ์ --}}
+            <a class="tile" href="{{ route('staff.equipment') }}">
+                <div class="tile-inner">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 7h12l4 5-4 5H4l4-5-4-5z" fill="currentColor" />
+                    </svg>
+                    <b>ยืม-คืน อุปกรณ์กีฬา</b>
+                </div>
+            </a>
+
+            {{-- จองสนามแบดมินตัน --}}
+            <a class="tile" href="{{ route('staff.badminton') }}">
+                <div class="tile-inner">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16M4 18h16M8 6v12M16 6v12" stroke="currentColor" stroke-width="2"
+                            fill="none" />
+                    </svg>
+                    <b>จองสนามแบดมินตัน</b>
+                </div>
+            </a>
+        </section>
+    </main>
+</body>
+
+</html>
