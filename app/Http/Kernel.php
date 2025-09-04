@@ -7,12 +7,7 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 class Kernel extends HttpKernel
 {
     protected $middleware = [
-        \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class,
-        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
-        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-        \App\Http\Middleware\TrimStrings::class,
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        // ค่าเดิมของคุณ
     ];
 
     protected $middlewareGroups = [
@@ -32,7 +27,9 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth'     => \App\Http\Middleware\Authenticate::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'staff'    => \App\Http\Middleware\RequireStaff::class,  // ✅ alias ที่ใช้ใน route
-        'person'   => \App\Http\Middleware\RequirePerson::class, // ✅
+
+        // 👇 เพิ่มสองบรรทัดนี้ให้มีจริง และไม่มีซ้ำซ้อน
+        'staff'    => \App\Http\Middleware\RequireStaff::class,
+        'person'   => \App\Http\Middleware\RequirePerson::class,
     ];
 }
