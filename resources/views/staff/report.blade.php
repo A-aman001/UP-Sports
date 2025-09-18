@@ -1,140 +1,131 @@
-@extends('layouts.basic')
-
-@section('title', 'รายงานการใช้สนาม')
-@section('content')
-    <h1>รายงานการใช้สนาม</h1>
-    {{-- วางเนื้อหา report เดิมที่นี่ --}}
-@endsection
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="icon" href="{{ asset('img/Logo_of_University_of_Phayao.svg.png') }}" type="image/png">
-    <title>รายงานผู้เข้าใช้สนาม – ดู/ค้นหา/ดาวน์โหลด</title>
-    <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="{{ asset('img/Logo_of_University_of_Phayao.svg.png') }}" type="image/png">
+  <title>รายงานผู้เข้าใช้สนาม – ดู/ค้นหา/ดาวน์โหลด</title>
+  <meta name="color-scheme" content="light dark">
 
-    {{-- CSS --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/Check-inReport.css') }}">
+  {{-- CSS --}}
+  <link rel="stylesheet" href="{{ asset('assets/css/Check-inReport.css') }}">
 
-    {{-- สคริปต์หลักของหน้านี้: ให้คุณย้ายไฟล์เดิมมาไว้ที่ public/js/Check-inReport.js --}}
-    <script src="{{ asset('js/Check-inReport.js') }}" defer></script>
+  <style>
+    /* ซ่อนคอลัมน์ PII บนจอ (export ยังมีจาก rowsForExport) */
+    @media screen {
+      #table thead th:nth-child(4),
+      #table thead th:nth-child(5),
+      #table thead th:nth-child(6),
+      #table thead th:nth-child(7),
+      #table tbody td:nth-child(4),
+      #table tbody td:nth-child(5),
+      #table tbody td:nth-child(6),
+      #table tbody td:nth-child(7) { display:none; }
+    }
+    /* ให้การ์ดกราฟสูงพอ */
+    .chart-card { min-height: 320px; }
+  </style>
 
-    {{-- Export libs (CDN) --}}
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js" defer></script>
+  {{-- ต้องโหลด Chart.js ก่อนไฟล์สคริปต์ของเรา --}}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-        /* ซ่อนคอลัมน์ PII บนจอ (export ยังได้จาก rowsForExport ที่สรุปนับจำนวน) */
-        @media screen {
+  {{-- สคริปต์หลักของหน้านี้ (เพื่อนทำไว้) --}}
+  <script src="{{ asset('js/Check-inReport.js') }}" defer></script>
 
-            #table thead th:nth-child(4),
-            #table thead th:nth-child(5),
-            #table thead th:nth-child(6),
-            #table thead th:nth-child(7),
-            #table tbody td:nth-child(4),
-            #table tbody td:nth-child(5),
-            #table tbody td:nth-child(6),
-            #table tbody td:nth-child(7) {
-                display: none;
-            }
-        }
-    </style>
+  {{-- Export libs (CDN) --}}
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js" defer></script>
 </head>
 
 <body>
-    <header class="topbar" aria-label="University Bar">
-        <div class="brand">
-            <img src="{{ asset('img/logoDSASMART.png') }}" alt="DSA" class="brand-logo">
+  <header class="topbar" aria-label="University Bar">
+    <div class="brand">
+      <img src="{{ asset('img/logoDSASMART.png') }}" alt="DSA" class="brand-logo">
+    </div>
+  </header>
+
+  <main>
+    {{-- Toolbar --}}
+    <section class="card">
+      <div class="toolbar">
+        <label>ช่วงวันที่:
+          <input type="date" id="from"> - <input type="date" id="to">
+        </label>
+
+        <label>กลุ่ม:
+          <select id="groupBy">
+            <option value="none">ไม่จัดกลุ่ม</option>
+            <option value="facility">ตามสนาม</option>
+            <option value="date">ตามวัน (session)</option>
+          </select>
+        </label>
+
+        <input type="text" id="q" placeholder="ค้นหา: ชื่อสนาม" style="min-width:240px">
+
+        <div class="chips" id="chips">
+          <span class="chip selected" data-k="all">ทั้งหมด</span>
+          <span class="chip" data-k="outdoor"   style="color:var(--outdoor)">สนามกลางแจ้ง</span>
+          <span class="chip" data-k="badminton" style="color:var(--badminton)">แบดมินตัน</span>
+          <span class="chip" data-k="pool"      style="color:var(--pool)">สระว่ายน้ำ</span>
+          <span class="chip" data-k="track"     style="color:var(--track)">ลู่-ลาน</span>
         </div>
-    </header>
 
-    <main>
-        <section class="card">
-            <div class="toolbar">
-                <label>ช่วงวันที่:
-                    <input type="date" id="from"> - <input type="date" id="to">
-                </label>
+        <span style="flex:1"></span>
+        <button id="btnExcel">ดาวน์โหลด Excel</button>
+        <button id="btnPDF">ดาวน์โหลด PDF</button>
+        <button id="btnDoc">ดาวน์โหลด DOCX</button>
+        <button id="btnPrint">พิมพ์/เป็น PDF (เบราว์เซอร์)</button>
+      </div>
+    </section>
 
-                <label>กลุ่ม:
-                    <select id="groupBy">
-                        <option value="none">ไม่จัดกลุ่ม</option>
-                        <option value="facility">ตามสนาม</option>
-                        <option value="date">ตามวัน (session)</option>
-                    </select>
-                </label>
+    {{-- พื้นที่กราฟแท่งสรุปตามช่วงเวลา step1 --}}
+    <section class="card chart-card">
+      <canvas id="usageBar" aria-label="แผนภูมิแท่งการใช้สนามตามช่วงเวลา"></canvas>
+    </section>
 
-                <input type="text" id="q" placeholder="ค้นหา: ชื่อสนาม" style="min-width:240px">
+    {{-- การ์ดสถิติ + ตาราง --}}
+    <section class="card grid">
+      <div class="stats">
+        <div class="stat"><small>รวมรายการ</small><div><b id="st-total">0</b></div></div>
+        <div class="stat"><small>กลางแจ้ง</small><div><b id="st-outdoor">0</b></div></div>
+        <div class="stat"><small>แบดมินตัน</small><div><b id="st-badminton">0</b></div></div>
+        <div class="stat"><small>สระ/ลู่-ลาน</small><div><b><span id="st-pool">0</span> / <span id="st-track">0</span></b></div></div>
+      </div>
 
-                <div class="chips" id="chips">
-                    <span class="chip selected" data-k="all">ทั้งหมด</span>
-                    <span class="chip" data-k="outdoor" style="color:var(--outdoor)">สนามกลางแจ้ง</span>
-                    <span class="chip" data-k="badminton" style="color:var(--badminton)">แบดมินตัน</span>
-                    <span class="chip" data-k="pool" style="color:var(--pool)">สระว่ายน้ำ</span>
-                    <span class="chip" data-k="track" style="color:var(--track)">ลู่-ลาน</span>
-                </div>
+      <div class="table-wrap">
+        <table id="table">
+          <thead>
+            <tr>
+              <th>เวลา</th>
+              <th>วันที่ (session)</th>
+              <th>สนาม</th>
+              <th>รหัสนิสิต</th>
+              <th>ชื่อ-สกุล</th>
+              <th>คณะ</th>
+              <th>อีเมล</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
-                <span style="flex:1"></span>
-                <button id="btnExcel">ดาวน์โหลด Excel</button>
-                <button id="btnPDF">ดาวน์โหลด PDF</button>
-                <button id="btnDoc">ดาวน์โหลด DOCX</button>
-                <button id="btnPrint">พิมพ์/เป็น PDF (เบราว์เซอร์)</button>
-            </div>
-        </section>
-
-        <section class="card grid">
-            <div class="stats">
-                <div class="stat"><small>รวมรายการ</small>
-                    <div><b id="st-total">0</b></div>
-                </div>
-                <div class="stat"><small>กลางแจ้ง</small>
-                    <div><b id="st-outdoor">0</b></div>
-                </div>
-                <div class="stat"><small>แบดมินตัน</small>
-                    <div><b id="st-badminton">0</b></div>
-                </div>
-                <div class="stat"><small>สระ/ลู่-ลาน</small>
-                    <div><b><span id="st-pool">0</span> / <span id="st-track">0</span></b></div>
-                </div>
-            </div>
-
-            <div class="table-wrap">
-                <table id="table">
-                    <thead>
-                        <tr>
-                            <th>เวลา</th>
-                            <th>วันที่ (session)</th>
-                            <th>สนาม</th>
-                            <th>รหัสนิสิต</th>
-                            <th>ชื่อ-สกุล</th>
-                            <th>คณะ</th>
-                            <th>อีเมล</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    {{-- ตั้งค่าวันจาก ?session= แล้วสั่งโหลดข้อมูล --}}
-    <script>
-        (function initDateFromQuery() {
-            const url = new URL(location.href);
-            const sess = url.searchParams.get('session');
-            const $from = document.getElementById('from');
-            const $to = document.getElementById('to');
-            const today = new Date().toISOString().slice(0, 10);
-            $from.value = sess || today;
-            $to.value = sess || today;
-
-            if (typeof load === 'function') load();
-        })();
-    </script>
+  {{-- ตั้งค่า default date จาก ?session= แล้วเรียก load() ครั้งแรก --}}
+  <script>
+    (function initDateFromQuery() {
+      const url = new URL(location.href);
+      const sess = url.searchParams.get('session');
+      const $from = document.getElementById('from');
+      const $to   = document.getElementById('to');
+      const today = new Date().toISOString().slice(0,10);
+      $from.value = sess || today;
+      $to.value   = sess || today;
+      if (typeof load === 'function') load(); // ให้ JS ของคุณไปดึงข้อมูล+วาดกราฟ
+    })();
+  </script>
 </body>
-
 </html>
