@@ -93,7 +93,7 @@ _Key Features:_
 
 -   **Frontend**: HTML / CSS / JavaScript
 -   **Backend**: Node.js / Python / Java / PHP
--   **Database**: MySQL
+-   **Database**: Supabase
 -   **Authentication**: QR Code + Role-based Access
 -   **Visualization**: Chart.js / D3.js
 
